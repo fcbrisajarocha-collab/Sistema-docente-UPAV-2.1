@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPAV · Sistema de Gestión Docente</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#0d1117;--bg1:#161b22;--bg2:#1c2128;--bg3:#21262d;--bg4:#30363d;
+  --bdr:#30363d;--bdr2:#484f58;
+  --txt:#e6edf3;--txt2:#8b949e;--txt3:#6e7681;
+  --green:#3fb950;--green-bg:#0d2b1a;--green-dim:#1a4429;
+  --blue:#58a6ff;--blue-bg:#0c1e3a;--blue-dim:#1a3557;
+  --amber:#d29922;--amber-bg:#2b1d09;--amber-dim:#3d2b0a;
+  --red:#f85149;--red-bg:#2b0d0d;--red-dim:#3d1212;
+  --purple:#bc8cff;--purple-bg:#1a0d3d;
+  --accent:#238636;
+}
+body{background:var(--bg0);color:var(--txt);font-family:'Courier New',monospace;font-size:13px;min-height:100vh;overflow-x:hidden}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--bg1);border-bottom:2px solid var(--green);padding:8px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{background:var(--green);color:#000;font-weight:900;font-size:12px;padding:4px 9px;border-radius:4px;letter-spacing:2px}
+.topbar-info{margin-left:12px}
+.topbar-info h1{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--txt)}
+.topbar-info p{font-size:10px;color:var(--txt3);margin-top:1px}
+.topbar-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── BUTTONS ── */
+.btn{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:5px 11px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Courier New',monospace;transition:.15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{background:var(--bg4);border-color:var(--bdr2)}
+.btn-green{background:var(--accent);border-color:#2ea043;color:#fff}
+.btn-green:hover{background:#2ea043}
+.btn-blue{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.btn-blue:hover{background:var(--blue-bg)}
+.btn-amber{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.btn-amber:hover{opacity:.85}
+.btn-red{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.btn-red:hover{opacity:.85}
+.btn-sm{padding:3px 8px;font-size:10px}
+.btn-xs{padding:2px 6px;font-size:9px}
+
+/* ── NAV ── */
+.main-nav{background:var(--bg1);border-bottom:1px solid var(--bdr);padding:0 18px;display:flex;position:sticky;top:52px;z-index:99}
+.nav-tab{padding:9px 16px;font-size:11px;color:var(--txt2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;text-transform:uppercase;letter-spacing:.5px}
+.nav-tab:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - 88px);overflow:hidden}
+.sidebar{width:200px;min-width:200px;background:var(--bg1);border-right:1px solid var(--bdr);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-section{padding:10px 14px 4px;font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.2px;display:flex;align-items:center;justify-content:space-between}
+.sidebar-item{padding:7px 14px;cursor:pointer;font-size:11px;color:var(--txt2);display:flex;align-items:center;gap:8px;border-left:2px solid transparent;transition:.12s;user-select:none}
+.sidebar-item:hover{background:rgba(255,255,255,.04);color:var(--txt)}
+.sidebar-item.active{background:var(--bg2);color:var(--txt);border-left-color:var(--green)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.content-area{flex:1;overflow-y:auto;background:var(--bg0)}
+
+/* ── CONTENT HEADER ── */
+.ch{background:var(--bg1);border-bottom:1px solid var(--bdr);padding:11px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.ch h2{font-size:14px;font-weight:700}
+.ch .bc{font-size:10px;color:var(--txt3);margin-top:2px}
+.ch .bc span{color:var(--txt2)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim)}
+.b-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-dim)}
+.b-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim)}
+.b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
+.b-purple{background:var(--purple-bg);color:var(--purple);border:1px solid #3d1a8a}
+.b-gray{background:var(--bg3);color:var(--txt2);border:1px solid var(--bdr)}
+
+/* ── KPI ROW ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:14px 20px}
+.kpi{background:var(--bg1);border:1px solid var(--bdr);border-radius:5px;padding:11px 13px}
+.kpi-v{font-size:26px;font-weight:700;line-height:1}
+.kpi-l{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.9px;margin-top:4px}
+
+/* ── SECTION ── */
+.sec{padding:0 20px 20px}
+.sec-title{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;padding:12px 0 8px;border-bottom:1px solid var(--bdr);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* ── MATERIAS GRID ── */
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.mat-card{background:var(--bg1);border:1px solid var(--bdr);border-radius:6px;padding:14px;transition:.15s;cursor:pointer}
+.mat-card:hover{border-color:var(--bdr2);background:var(--bg2)}
+.mat-card.sel{border-color:var(--green)}
+.mat-bar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
+
+/* ── SUB TABS ── */
+.sub-tabs{display:flex;border-bottom:1px solid var(--bdr);padding:0 20px;background:var(--bg1);position:sticky;top:44px;z-index:49}
+.sub-tab{padding:8px 13px;font-size:10px;color:var(--txt2);cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.5px;transition:.15s}
+.sub-tab:hover{color:var(--txt)}
+.sub-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg2);color:var(--txt3);font-size:9px;text-transform:uppercase;letter-spacing:.8px;padding:7px 9px;text-align:left;border-bottom:1px solid var(--bdr);white-space:nowrap}
+td{padding:6px 9px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--txt2);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.025)}
+
+/* ── INPUTS ── */
+input[type=number]{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:3px 5px;border-radius:3px;width:52px;font-family:'Courier New',monospace;font-size:11px;text-align:center}
+input[type=number]:focus{outline:none;border-color:var(--blue)}
+input[type=text],input[type=date]{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:5px 8px;border-radius:3px;font-family:'Courier New',monospace;font-size:11px;width:100%}
+input[type=text]:focus,input[type=date]:focus{outline:none;border-color:var(--blue)}
+select{background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:4px 8px;border-radius:3px;font-family:'Courier New',monospace;font-size:11px;cursor:pointer}
+select:focus{outline:none;border-color:var(--blue)}
+input[type=file]{display:none}
+
+/* ── ACCORDION ── */
+.acc{background:var(--bg1);border:1px solid var(--bdr);border-radius:5px;margin-bottom:8px;overflow:hidden}
+.acc-head{padding:11px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);transition:.12s;user-select:none}
+.acc-head:hover{background:var(--bg3)}
+.acc-body{padding:14px;border-top:1px solid var(--bdr)}
+
+/* ── RUBRO ROW ── */
+.rub-row{display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg3)}
+
+/* ── CHART ── */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;padding:0 2px}
+.bc-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:30px}
+.bc-bar{width:100%;border-radius:2px 2px 0 0;min-height:3px;transition:.4s}
+.bc-lbl{font-size:8px;color:var(--txt3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px}
+.bc-val{font-size:9px;font-weight:700;color:var(--txt2)}
+
+/* ── POND ── */
+.pond-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.pond-lbl{font-size:11px;color:var(--txt2);min-width:100px;overflow:hidden;text-overflow:ellipsis}
+.pond-track{flex:1;height:7px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.pond-fill{height:100%;border-radius:3px;transition:.3s}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--bg1);border:1px solid var(--bdr2);border-radius:7px;padding:20px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative}
+.modal.wide{max-width:720px}
+.modal h3{font-size:13px;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.modal-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--txt3);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px}
+.modal-x:hover{color:var(--txt)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.form-full{grid-column:1/-1}
+.f-label{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--green-bg);border:1px solid var(--green);color:var(--green);padding:9px 16px;border-radius:5px;font-size:11px;animation:toastIn .2s ease;pointer-events:none}
+@keyframes toastIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── DIALOG (reemplaza confirm/alert/prompt) ── */
+#dlg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:2000;display:flex;align-items:center;justify-content:center}
+.dlg{background:var(--bg1);border:1px solid var(--bdr2);border-radius:7px;padding:22px 24px;width:360px;font-family:'Courier New',monospace}
+.dlg-msg{font-size:13px;color:var(--txt);margin-bottom:6px;line-height:1.5}
+.dlg-sub{font-size:11px;color:var(--txt3);margin-bottom:16px}
+.dlg-input{width:100%;margin-bottom:14px}
+.dlg-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── DRIVE LINK ── */
+.drive-link{color:var(--blue);font-size:10px;text-decoration:underline;cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+
+.hidden{display:none!important}
+.sep{height:8px}
+.w100{width:100%}
+.txt-green{color:var(--green)}
+.txt-blue{color:var(--blue)}
+.txt-amber{color:var(--amber)}
+.txt-red{color:var(--red)}
+.txt-muted{color:var(--txt2)}
+.fw7{font-weight:700}
+</style>
+<!-- Firebase REST API - sin SDKs externos -->
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">UPAV</div>
+    <div class="topbar-info">
+      <h1>SISTEMA DE GESTIÓN DOCENTE</h1>
+      <p id="ciclo-label">Plataforma Académica · Ciclo Ene–Jun 2026</p>
+    </div>
+  </div>
+  <div class="topbar-btns">
+    <button class="btn btn-amber" onclick="exportReporteExcel()">⬇ Reporte Excel</button>
+    <button class="btn" onclick="showModal('report')">📋 Ver Reporte</button>
+    <div style="width:1px;background:var(--bdr);height:22px;margin:0 2px"></div>
+    <button class="btn btn-green" onclick="exportarDatos()" title="Guarda todos tus datos en un archivo .json para llevar a otro dispositivo">💾 Exportar Datos</button>
+    <label class="btn btn-blue" style="cursor:pointer" title="Carga un archivo .json previamente exportado">📂 Importar Datos<input type="file" accept=".json" style="display:none" onchange="importarDatos(event)"></label>
+    <div id="sync-status" style="font-size:9px;color:var(--txt3);white-space:nowrap;align-self:center;cursor:pointer" onclick="mostrarDebug()" title="Click para diagnóstico"></div>
+    <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#484f58;flex-shrink:0;align-self:center" title="Estado conexión Firebase"></div>
+  </div>
+</div>
+
+<!-- MAIN NAV -->
+<div class="main-nav">
+  <div class="nav-tab active" id="nav-dashboard" onclick="setView('dashboard')">Dashboard</div>
+  <div class="nav-tab" id="nav-materia" onclick="setView('materia')">Materia Activa</div>
+  <div class="nav-tab" id="nav-ciclos" onclick="setView('ciclos')">Ciclos Escolares</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="content-area" id="content"></div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay hidden" id="overlay" onclick="overlayClick(event)">
+  <!-- MODAL CICLO -->
+  <div class="modal hidden" id="modal-ciclo">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>🗓 <span id="mciclo-ttl">Nuevo Ciclo</span></h3>
+    <div class="form-grid">
+      <div class="form-full"><label class="f-label">Nombre del Ciclo</label><input type="text" id="mc-nombre" placeholder="Ene – Jun 2026"></div>
+      <div><label class="f-label">Fecha Inicio</label><input type="date" id="mc-inicio"></div>
+      <div><label class="f-label">Fecha Fin</label><input type="date" id="mc-fin"></div>
+      <div><label class="f-label">Estado/Color</label>
+        <select id="mc-color">
+          <option value="green">🟢 Activo</option>
+          <option value="blue">🔵 En curso</option>
+          <option value="amber">🟡 Próximo</option>
+          <option value="gray">⚫ Cerrado</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveCiclo()">Guardar Ciclo</button>
+    </div>
+  </div>
+
+  <!-- MODAL MATERIA -->
+  <div class="modal hidden" id="modal-materia">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>📚 <span id="mmat-ttl">Nueva Materia</span></h3>
+    <div class="form-grid">
+      <div class="form-full"><label class="f-label">Nombre de la Materia</label><input type="text" id="mm-nombre" placeholder="Matemáticas Avanzadas"></div>
+      <div><label class="f-label">Clave</label><input type="text" id="mm-clave" placeholder="MAT-301"></div>
+      <div><label class="f-label">Color</label>
+        <select id="mm-color">
+          <option value="green">Verde</option>
+          <option value="blue">Azul</option>
+          <option value="amber">Ámbar</option>
+          <option value="purple">Morado</option>
+          <option value="red">Rojo</option>
+        </select>
+      </div>
+      <div><label class="f-label">Ciclo Escolar</label><select id="mm-ciclo"></select></div>
+    </div>
+    <div style="margin-top:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span class="f-label" style="display:inline">Categorías de Evaluación</span>
+        <button class="btn btn-sm btn-green" onclick="addPondRow()">+ Agregar</button>
+      </div>
+      <div id="pond-editor"></div>
+      <div id="pond-total" style="font-size:11px;margin-top:6px;padding:5px 8px;border-radius:3px;background:var(--bg3)">Total: 0%</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveMateria()">Guardar Materia</button>
+    </div>
+  </div>
+
+  <!-- MODAL MÓDULO -->
+  <div class="modal hidden" id="modal-modulo">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>📦 <span id="mmod-ttl">Nuevo Módulo</span></h3>
+    <div class="form-grid">
+      <div class="form-full"><label class="f-label">Nombre del Módulo</label><input type="text" id="mmod-nombre" placeholder="Módulo 1: Álgebra"></div>
+      <div><label class="f-label">Fecha de Ejecución</label><input type="date" id="mmod-fecha"></div>
+      <div class="form-full"><label class="f-label">Temas a cubrir</label><input type="text" id="mmod-temas" placeholder="Polinomios, factorización..."></div>
+      <div class="form-full"><label class="f-label">Objetivos de aprendizaje</label><input type="text" id="mmod-obj" placeholder="El alumno será capaz de..."></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveModulo()">Guardar Módulo</button>
+    </div>
+  </div>
+
+  <!-- MODAL REPORTE -->
+  <div class="modal wide hidden" id="modal-report">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>📊 Reporte Ejecutivo · <span id="rep-ciclo"></span></h3>
+    <div id="report-body"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-amber" onclick="exportReporteExcel()">⬇ Descargar Excel</button>
+      <button class="btn" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- CUSTOM DIALOG (reemplaza confirm/alert/prompt nativos) -->
+<div id="dlg-overlay" style="display:none">
+  <div class="dlg">
+    <div class="dlg-msg" id="dlg-msg"></div>
+    <div class="dlg-sub" id="dlg-sub"></div>
+    <input type="text" id="dlg-input" class="dlg-input hidden" placeholder="">
+    <div class="dlg-btns" id="dlg-btns"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const S = {
+  view: 'dashboard',
+  subTab: 'calif',
+  activeCiclo: 0,
+  activeMat: 0,
+  editCiclo: -1,
+  editMat: -1,
+  editMod: -1,
+  _pondRows: [],
+  nextCicloId: 3,
+  nextMatId: 3,
+  nextModId: 20,
+  ciclos: [],
+  materias: []
+};
+
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
+const colorHex = c => ({'green':'#3fb950','blue':'#58a6ff','amber':'#d29922','red':'#f85149','purple':'#bc8cff','gray':'#484f58'}[c]||'#3fb950');
+const colorBadge = c => ({'green':'b-green','blue':'b-blue','amber':'b-amber','red':'b-red','purple':'b-purple','gray':'b-gray'}[c]||'b-green');
+const colorTxt = c => ({'green':'txt-green','blue':'txt-blue','amber':'txt-amber','red':'txt-red','purple':'','gray':'txt-muted'}[c]||'txt-green');
+
+function nKey(modId, ri){ return `${modId}_${ri}`; }
+
+function calcPromAlumno(mat, al){
+  const pond = mat.pond;
+  const cats = Object.keys(pond);
+  const totalPond = Object.values(pond).reduce((a,b)=>a+b,0) || 100;
+  let sumW = 0, usedW = 0;
+  cats.forEach(cat => {
+    const items = [];
+    mat.modulos.forEach(mod => {
+      mod.rubros.forEach((r,ri) => {
+        if(r.cat === cat){
+          const k = nKey(mod.id, ri);
+          items.push(al.notas[k] ?? 0);
+        }
+      });
+    });
+    if(items.length){
+      const prom = items.reduce((a,b)=>a+b,0)/items.length;
+      const w = pond[cat]/totalPond;
+      sumW += prom * w;
+      usedW += w;
+    }
+  });
+  return usedW ? Math.round(sumW/usedW*10)/10 : 0;
+}
+
+function calcPromGrupo(mat){
+  if(!mat.alumnos.length) return 0;
+  const s = mat.alumnos.reduce((a,al)=>a+calcPromAlumno(mat,al),0);
+  return Math.round(s/mat.alumnos.length*10)/10;
+}
+
+function calcPromMod(mat, modIdx){
+  const mod = mat.modulos[modIdx];
+  if(!mod || !mod.rubros.length || !mat.alumnos.length) return 0;
+  let total = 0, count = 0;
+  mat.alumnos.forEach(al => {
+    mod.rubros.forEach((r,ri) => {
+      total += al.notas[nKey(mod.id,ri)] ?? 0;
+      count++;
+    });
+  });
+  return count ? Math.round(total/count*10)/10 : 0;
+}
+
+function activeMats(){
+  const c = S.ciclos[S.activeCiclo];
+  return c ? S.materias.filter(m=>m.cicloId===c.id) : [];
+}
+
+function asistPct(al){
+  const a = al.asist || [];
+  if(!a.length) return 100;
+  return Math.round(a.filter(x=>x==='A').length/a.length*100);
+}
+
+// ════════════════════════════════════════════════
+// RENDER SIDEBAR
+// ════════════════════════════════════════════════
+function renderSidebar(){
+  const mats = activeMats();
+  document.getElementById('sidebar').innerHTML = `
+    <div class="sidebar-section">Ciclos
+      <button class="btn btn-xs btn-green" onclick="showModal('ciclo',-1)">+</button>
+    </div>
+    ${S.ciclos.map((c,i)=>`
+      <div class="sidebar-item${S.activeCiclo===i?' active':''}" onclick="selCiclo(${i})">
+        <div class="dot" style="background:${colorHex(c.color)}"></div>
+        <span style="flex:1;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</span>
+      </div>`).join('')}
+    <div class="sidebar-section">Materias
+      <button class="btn btn-xs btn-green" onclick="showModal('materia',-1)">+</button>
+    </div>
+    ${mats.map(mat=>{
+      const gi = S.materias.indexOf(mat);
+      return `<div class="sidebar-item${S.activeMat===gi?' active':''}" onclick="selMat(${gi})">
+        <div class="dot" style="background:${colorHex(mat.color)}"></div>
+        <span style="flex:1;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${mat.nombre}</span>
+      </div>`;
+    }).join('')}
+    <div style="flex:1"></div>
+  `;
+}
+
+// ════════════════════════════════════════════════
+// VIEW ROUTING
+// ════════════════════════════════════════════════
+function setView(v){
+  S.view = v;
+  ['dashboard','materia','ciclos'].forEach(t=>{
+    document.getElementById(`nav-${t}`).classList.toggle('active', t===v);
+  });
+  renderContent();
+}
+
+function selCiclo(i){
+  S.activeCiclo = i;
+  S.activeMat = 0;
+  if(S.ciclos[i]) document.getElementById('ciclo-label').textContent = `Plataforma Académica · Ciclo ${S.ciclos[i].nombre}`;
+  renderAll();
+}
+
+function selMat(i){
+  S.activeMat = i;
+  S.view = 'materia';
+  ['dashboard','materia','ciclos'].forEach(t=>{
+    document.getElementById(`nav-${t}`).classList.toggle('active', t==='materia');
+  });
+  renderAll();
+}
+
+function renderAll(){ renderSidebar(); renderContent(); }
+
+function renderContent(){
+  if(S.view==='dashboard') renderDashboard();
+  else if(S.view==='materia') renderMateria();
+  else renderCiclosView();
+}
+
+// ════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════
+function renderDashboard(){
+  const c = S.ciclos[S.activeCiclo];
+  // Si no hay ciclos todavía (cargando desde Firebase), mostrar pantalla de espera
+  if(!c){
+    document.getElementById('content').innerHTML = `
+    <div style="padding:40px 20px;text-align:center;color:var(--txt3)">
+      <div style="font-size:28px;margin-bottom:12px">☁</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:8px">Cargando datos desde Firebase...</div>
+      <div style="font-size:11px">Si esto persiste, crea tu primer ciclo escolar con el botón <b style="color:var(--green)">+</b> en el menú lateral.</div>
+    </div>`;
+    return;
+  }
+  const mats = activeMats();
+  const ta = mats.reduce((s,m)=>s+m.alumnos.length,0);
+  const tm = mats.reduce((s,m)=>s+m.modulos.length,0);
+  const pg = mats.length ? mats.reduce((s,m)=>s+calcPromGrupo(m),0)/mats.length : 0;
+
+  document.getElementById('content').innerHTML = `
+  <div class="ch">
+    <div><h2>Dashboard · ${c.nombre}</h2><div class="bc">Resumen del ciclo activo</div></div>
+    <span class="badge ${colorBadge(c.color)}">${c.color==='green'?'ACTIVO':'CERRADO'}</span>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-v txt-green">${mats.length}</div><div class="kpi-l">Materias</div></div>
+    <div class="kpi"><div class="kpi-v txt-blue">${ta}</div><div class="kpi-l">Alumnos</div></div>
+    <div class="kpi"><div class="kpi-v txt-amber">${tm}</div><div class="kpi-l">Módulos</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:${pg>=7?'var(--green)':'var(--red)'}">${pg.toFixed(1)}</div><div class="kpi-l">Prom. General</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:var(--purple)">${S.ciclos.length}</div><div class="kpi-l">Ciclos</div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-title">Materias del Ciclo
+      <button class="btn btn-sm btn-green" onclick="showModal('materia',-1)">+ Nueva Materia</button>
+    </div>
+    <div class="mat-grid">
+      ${mats.map(mat=>{
+        const gi = S.materias.indexOf(mat);
+        const pg = calcPromGrupo(mat);
+        const pct = Math.round(pg/10*100);
+        return `<div class="mat-card${S.activeMat===gi?' sel':''}" onclick="selMat(${gi})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700">${mat.nombre}</span>
+            <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+              <button class="btn btn-xs" onclick="showModal('materia',${gi})">✏</button>
+              <button class="btn btn-xs btn-red" onclick="deleteMat(${gi})">🗑</button>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--txt2);margin-bottom:7px">${mat.clave} · ${mat.alumnos.length} alumnos · ${mat.modulos.length} módulos</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:9px;color:var(--txt3)">Promedio grupo</span>
+            <span style="font-size:12px;font-weight:700;color:${pg>=7?'var(--green)':'var(--red)'}">${pg.toFixed(1)}</span>
+          </div>
+          <div class="mat-bar"><div style="height:100%;width:${pct}%;background:${colorHex(mat.color)};border-radius:2px"></div></div>
+          <div class="bar-chart" style="margin-top:10px;height:55px">
+            ${mat.modulos.map((_,mi)=>{
+              const p = calcPromMod(mat,mi);
+              return `<div class="bc-col">
+                <div class="bc-val">${p}</div>
+                <div class="bc-bar" style="height:${Math.round(p/10*100)}%;background:${colorHex(mat.color)}"></div>
+                <div class="bc-lbl">${mat.modulos[mi].nombre.split(':')[0]}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+// MATERIA VIEW
+// ════════════════════════════════════════════════
+function renderMateria(){
+  const mat = S.materias[S.activeMat];
+  if(!mat){ document.getElementById('content').innerHTML='<div style="padding:30px;color:var(--txt3)">Selecciona una materia del menú lateral.</div>'; return; }
+  const c = S.ciclos[S.activeCiclo];
+  const pg = calcPromGrupo(mat);
+  document.getElementById('content').innerHTML = `
+  <div class="ch">
+    <div>
+      <h2>${mat.nombre}</h2>
+      <div class="bc">${c.nombre} → <span>${mat.clave}</span></div>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <span class="badge ${colorBadge(mat.color)}">${mat.alumnos.length} alumnos</span>
+      <span style="font-size:13px;font-weight:700;color:${pg>=7?'var(--green)':'var(--red)'}">Prom: ${pg.toFixed(1)}</span>
+      <button class="btn btn-sm" onclick="showModal('materia',${S.activeMat})">✏ Editar</button>
+    </div>
+  </div>
+  <div class="sub-tabs">
+    ${['calif','asist','plan','pond','alumnos'].map(t=>`
+      <div class="sub-tab${S.subTab===t?' active':''}" onclick="setSubTab('${t}')">${
+        {calif:'Calificaciones',asist:'Asistencia',plan:'Planeación',pond:'Ponderación',alumnos:'Alumnos'}[t]
+      }</div>`).join('')}
+  </div>
+  <div id="subtab-content"></div>`;
+  renderSubTab();
+}
+
+function setSubTab(t){ S.subTab=t; renderSubTab(); }
+
+function renderSubTab(){
+  const mat = S.materias[S.activeMat];
+  const el = document.getElementById('subtab-content');
+  if(!el||!mat) return;
+  const fn = {calif:renderCalif,asist:renderAsist,plan:renderPlan,pond:renderPond,alumnos:renderAlumnos}[S.subTab];
+  if(fn) fn(mat,el);
+}
+
+// ── CALIFICACIONES ──
+function renderCalif(mat,el){
+  const modRubros = mat.modulos.flatMap((mod,mi)=>mod.rubros.map((r,ri)=>({mod,mi,r,ri})));
+  el.innerHTML = `
+  <div class="sec" style="padding-top:14px">
+    <div class="sec-title">Libro de Calificaciones
+      <button class="btn btn-sm btn-amber" onclick="exportCalifExcel()">⬇ Exportar Excel</button>
+    </div>
+    <div class="bar-chart" style="margin-bottom:14px">
+      ${mat.modulos.map((_,mi)=>{const p=calcPromMod(mat,mi);return`<div class="bc-col"><div class="bc-val">${p}</div><div class="bc-bar" style="height:${Math.round(p/10*100)}%;background:${colorHex(mat.color)}"></div><div class="bc-lbl">${mat.modulos[mi].nombre.split(':')[0]}</div></div>`;}).join('')}
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>#</th><th style="min-width:140px">Alumno</th>
+        ${modRubros.map(({mod,r})=>`<th title="${mod.nombre}">${mod.nombre.split(':')[0]}<br><span style="font-size:8px;color:var(--txt3)">${r.nombre.substring(0,16)}</span></th>`).join('')}
+        <th>Prom. Final</th>
+      </tr></thead>
+      <tbody>
+        ${mat.alumnos.map((al,ai)=>{
+          const pf = calcPromAlumno(mat,al);
+          return `<tr>
+            <td style="color:var(--txt3)">${ai+1}</td>
+            <td style="color:var(--txt)">${al.nombre}</td>
+            ${modRubros.map(({mod,ri})=>{
+              const k = nKey(mod.id,ri);
+              const v = al.notas[k]??0;
+              return `<td><input type="number" min="0" max="10" step=".5" value="${v}" onchange="setNota(${ai},'${mod.id}',${ri},this.value)"></td>`;
+            }).join('')}
+            <td style="font-weight:700;color:${pf>=7?'var(--green)':'var(--red)'}">${pf}</td>
+          </tr>`;
+        }).join('')}
+        <tr style="background:var(--bg2)">
+          <td colspan="2" style="font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px">Prom. Grupo</td>
+          ${modRubros.map(({mod,ri})=>{
+            const vals = mat.alumnos.map(al=>al.notas[nKey(mod.id,ri)]??0);
+            const p = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10 : 0;
+            return `<td style="font-weight:700;color:var(--blue)">${p}</td>`;
+          }).join('')}
+          <td style="font-weight:700;color:var(--amber)">${calcPromGrupo(mat).toFixed(1)}</td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+function setNota(ai,modId,ri,v){
+  S.materias[S.activeMat].alumnos[ai].notas[nKey(modId,ri)] = parseFloat(v)||0;
+}
+
+// ── ASISTENCIA ──
+function renderAsist(mat,el){
+  const sesiones = ['Ses.1','Ses.2','Ses.3','Ses.4','Ses.5','Ses.6','Ses.7','Ses.8'];
+  el.innerHTML = `
+  <div class="sec" style="padding-top:14px">
+    <div class="sec-title">Pase de Lista
+      <button class="btn btn-sm btn-amber" onclick="exportAsistExcel()">⬇ Exportar Excel</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <span class="badge b-green">A = Asistencia</span>
+      <span class="badge b-red">F = Falta</span>
+      <span class="badge b-amber">R = Retardo</span>
+      <span class="badge b-blue">J = Justificado</span>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Alumno</th>
+        ${sesiones.map(s=>`<th>${s}</th>`).join('')}
+        <th>% Asist.</th>
+      </tr></thead>
+      <tbody>
+        ${mat.alumnos.map((al,ai)=>{
+          const row = al.asist || Array(8).fill('A');
+          const pct = Math.round(row.filter(x=>x==='A').length/row.length*100);
+          return `<tr>
+            <td style="color:var(--txt3)">${ai+1}</td>
+            <td style="color:var(--txt)">${al.nombre}</td>
+            ${row.map((s,di)=>`<td>
+              <select onchange="setAsist(${ai},${di},this.value)" style="font-size:9px;padding:2px 4px">
+                ${['A','F','R','J'].map(o=>`<option value="${o}"${s===o?' selected':''}>${o}</option>`).join('')}
+              </select>
+            </td>`).join('')}
+            <td><span style="font-weight:700;color:${pct>=80?'var(--green)':pct>=60?'var(--amber)':'var(--red)'}">${pct}%</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+function setAsist(ai,di,v){
+  const mat = S.materias[S.activeMat];
+  if(!mat.alumnos[ai].asist) mat.alumnos[ai].asist = Array(8).fill('A');
+  mat.alumnos[ai].asist[di] = v;
+}
+
+// ── PLANEACIÓN ──
+function renderPlan(mat,el){
+  el.innerHTML = `
+  <div class="sec" style="padding-top:14px">
+    <div class="sec-title">Cronograma de Planeación
+      <button class="btn btn-sm btn-green" onclick="showModal('modulo',-1)">+ Módulo</button>
+    </div>
+    ${mat.modulos.map((mod,mi)=>`
+    <div class="acc">
+      <div class="acc-head" onclick="toggleAcc(${mi})">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge ${colorBadge(mat.color)}" style="font-size:8px">M${mi+1}</span>
+          <span style="font-size:12px;font-weight:700">${mod.nombre}</span>
+          <span style="font-size:9px;color:var(--txt3)">${mod.fecha||''}</span>
+          <span style="font-size:10px;color:var(--txt3)">${mod.rubros.length} rubros</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
+          <button class="btn btn-xs" onclick="showModal('modulo',${mi})">✏</button>
+          <button class="btn btn-xs btn-red" onclick="delMod(${mi})">🗑</button>
+          <span id="arr-${mi}" style="color:var(--txt3);font-size:11px">${mod.open?'▲':'▼'}</span>
+        </div>
+      </div>
+      <div id="acc-${mi}" ${mod.open?'':'class="hidden"'}>
+      <div class="acc-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div><label class="f-label">Temas</label><input type="text" value="${mod.temas||''}" onchange="setPlanField(${mi},'temas',this.value)"></div>
+          <div><label class="f-label">Objetivos</label><input type="text" value="${mod.objetivos||''}" onchange="setPlanField(${mi},'objetivos',this.value)"></div>
+        </div>
+
+        <!-- RUBROS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+          <span class="f-label" style="display:inline">📝 Rubros de Calificación</span>
+          <button class="btn btn-xs btn-green" onclick="addRubro(${mi})">+ Rubro</button>
+        </div>
+        <div id="rubros-${mi}">
+          ${mod.rubros.map((r,ri)=>`
+          <div class="rub-row">
+            <input type="text" value="${r.nombre}" placeholder="Nombre del rubro" style="flex:2;min-width:120px" onchange="setRubro(${mi},${ri},'nombre',this.value)">
+            <select onchange="setRubro(${mi},${ri},'cat',this.value)" style="flex:1;min-width:100px">
+              ${Object.keys(mat.pond).map(k=>`<option value="${k}"${r.cat===k?' selected':''}>${k}</option>`).join('')}
+            </select>
+            <button class="btn btn-xs btn-red" onclick="delRubro(${mi},${ri})">🗑</button>
+          </div>`).join('')}
+        </div>
+
+        <!-- EVIDENCIAS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 7px">
+          <span class="f-label" style="display:inline">📁 Evidencias del Módulo</span>
+          <button class="btn btn-xs" onclick="addEvid(${mi})">+ Evidencia</button>
+        </div>
+        ${mod.evidencias.map((ev,ei)=>`
+        <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--bg3)">
+          <input type="checkbox" ${ev.done?'checked':''} onchange="setEvid(${mi},${ei},'done',this.checked)" style="accent-color:var(--green);cursor:pointer">
+          <input type="text" value="${ev.nombre}" style="flex:1;min-width:120px" onchange="setEvid(${mi},${ei},'nombre',this.value)">
+          ${ev.link
+            ? `<a class="drive-link" href="${ev.link}" target="_blank">🔗 Ver en Drive</a>`
+            : `<span style="font-size:9px;color:var(--txt3)">Sin link</span>`}
+          <button class="btn btn-xs btn-blue" onclick="linkDrive(${mi},${ei})">☁ ${ev.link?'Cambiar':'Drive'}</button>
+          <button class="btn btn-xs btn-red" onclick="delEvid(${mi},${ei})">🗑</button>
+        </div>`).join('')}
+      </div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function toggleAcc(mi){
+  const mat = S.materias[S.activeMat];
+  mat.modulos[mi].open = !mat.modulos[mi].open;
+  const b = document.getElementById(`acc-${mi}`);
+  const a = document.getElementById(`arr-${mi}`);
+  if(b) b.classList.toggle('hidden', !mat.modulos[mi].open);
+  if(a) a.textContent = mat.modulos[mi].open ? '▲' : '▼';
+}
+function setPlanField(mi,f,v){ S.materias[S.activeMat].modulos[mi][f]=v; }
+function addRubro(mi){
+  const mat = S.materias[S.activeMat];
+  const cats = Object.keys(mat.pond);
+  const mod = mat.modulos[mi];
+  mod.rubros.push({nombre:'Nuevo Rubro', cat:cats[0]||'Exámenes'});
+  const ri = mod.rubros.length-1;
+  mat.alumnos.forEach(al=>{ al.notas[nKey(mod.id,ri)]=0; });
+  renderSubTab();
+}
+function delRubro(mi,ri){
+  S.materias[S.activeMat].modulos[mi].rubros.splice(ri,1);
+  renderSubTab();
+}
+function setRubro(mi,ri,f,v){ S.materias[S.activeMat].modulos[mi].rubros[ri][f]=v; }
+function addEvid(mi){ S.materias[S.activeMat].modulos[mi].evidencias.push({nombre:'Nueva evidencia',link:'',done:false}); renderSubTab(); }
+function delEvid(mi,ei){ S.materias[S.activeMat].modulos[mi].evidencias.splice(ei,1); renderSubTab(); }
+function setEvid(mi,ei,f,v){ S.materias[S.activeMat].modulos[mi].evidencias[ei][f]=v; }
+function delMod(mi){
+  _showDlg('¿Eliminar módulo?','Esta acción no se puede deshacer.','confirm','','',function(ok){
+    if(!ok) return;
+    S.materias[S.activeMat].modulos.splice(mi,1);
+    renderSubTab();
+  });
+}
+function linkDrive(mi,ei){
+  _showDlg('Link de Google Drive','Pega el enlace completo de la evidencia en Drive:','prompt','https://drive.google.com/','',function(url){
+    if(url && url.startsWith('http')){
+      S.materias[S.activeMat].modulos[mi].evidencias[ei].link = url;
+      renderSubTab();
+      toast('Link de Drive guardado ✓');
+    }
+  });
+}
+
+// ── PONDERACIÓN ──
+function renderPond(mat,el){
+  const keys = Object.keys(mat.pond);
+  const vals = Object.values(mat.pond);
+  const total = vals.reduce((a,b)=>a+b,0);
+  el.innerHTML = `
+  <div class="sec" style="padding-top:14px">
+    <div class="sec-title">Configuración de Ponderación
+      <span style="font-size:11px;color:${total===100?'var(--green)':'var(--red)'}">Total: ${total}% ${total===100?'✓':'⚠ debe ser 100%'}</span>
+    </div>
+    ${keys.map((k,i)=>`
+    <div class="pond-row">
+      <div class="pond-lbl">${k}</div>
+      <div class="pond-track"><div class="pond-fill" style="width:${vals[i]}%;background:${colorHex(mat.color)}"></div></div>
+      <input type="number" min="0" max="100" value="${vals[i]}" style="width:55px" onchange="setPond('${k}',+this.value)">
+      <span style="font-size:11px;font-weight:700;color:${colorHex(mat.color)};min-width:32px">${vals[i]}%</span>
+      <button class="btn btn-xs btn-red" onclick="delCat('${k}')">🗑</button>
+    </div>`).join('')}
+    <button class="btn btn-sm btn-green" style="margin-top:8px" onclick="addCat()">+ Agregar Categoría</button>
+    <div style="margin-top:14px;background:var(--bg2);border:1px solid var(--bdr);border-radius:5px;padding:13px">
+      <div class="f-label" style="margin-bottom:8px">Promedio Final del Grupo (con ponderación actual)</div>
+      <div style="font-size:26px;font-weight:700;color:${calcPromGrupo(mat)>=7?'var(--green)':'var(--red)'}">${calcPromGrupo(mat).toFixed(2)}</div>
+      <div style="font-size:10px;color:var(--txt2);margin-top:4px">${keys.map((k,i)=>`${k} ${vals[i]}%`).join(' · ')}</div>
+    </div>
+  </div>`;
+}
+function setPond(k,v){ S.materias[S.activeMat].pond[k]=v; renderSubTab(); }
+function delCat(k){ delete S.materias[S.activeMat].pond[k]; renderSubTab(); }
+function addCat(){
+  _showDlg('Nueva categoría de evaluación','Escribe el nombre (ej: Exámenes, Participación):','prompt','Nombre de la categoría','',function(n){
+    if(!n) return;
+    S.materias[S.activeMat].pond[n] = 0;
+    renderSubTab();
+  });
+}
+
+// ── ALUMNOS ──
+function renderAlumnos(mat,el){
+  el.innerHTML = `
+  <div class="sec" style="padding-top:14px">
+    <div class="sec-title">Lista de Alumnos
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <label class="btn btn-sm btn-blue" style="cursor:pointer">
+          ⬆ Importar Excel
+          <input type="file" accept=".xlsx,.xls,.csv" onchange="importAlumnos(event)">
+        </label>
+        <button class="btn btn-sm btn-green" onclick="addAlumnoManual()">+ Agregar</button>
+        <button class="btn btn-sm btn-amber" onclick="exportAlumnosExcel()">⬇ Exportar Excel</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--txt3);background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;padding:8px 12px;margin-bottom:12px">
+      📌 Formato Excel para importar: columna A con encabezado <b style="color:var(--txt2)">Nombre</b> y los nombres de los alumnos abajo.
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Nombre</th><th>Prom. Final</th><th>% Asist.</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        ${mat.alumnos.map((al,ai)=>{
+          const pf = calcPromAlumno(mat,al);
+          const pct = asistPct(al);
+          return `<tr>
+            <td style="color:var(--txt3)">${ai+1}</td>
+            <td><input type="text" value="${al.nombre}" style="min-width:180px" onchange="renameAlumno(${ai},this.value)"></td>
+            <td style="font-weight:700;color:${pf>=7?'var(--green)':'var(--red)'}">${pf}</td>
+            <td style="color:${pct>=80?'var(--green)':pct>=60?'var(--amber)':'var(--red)'}">${pct}%</td>
+            <td><span class="badge ${pf>=7?'b-green':'b-red'}">${pf>=7?'Aprobado':'En Riesgo'}</span></td>
+            <td><button class="btn btn-xs btn-red" onclick="delAlumno(${ai})">🗑 Eliminar</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+function renameAlumno(ai,v){ S.materias[S.activeMat].alumnos[ai].nombre=v; }
+function addAlumnoManual(){
+  _showDlg('Agregar alumno','Nombre completo del alumno:','prompt','Ej: García Pérez Luis','',function(n){
+    if(!n) return;
+    const mat = S.materias[S.activeMat];
+    mat.alumnos.push({nombre:n.trim(), notas:{}, asist:Array(8).fill('A')});
+    renderSubTab();
+    toast('Alumno "' + n + '" agregado');
+  });
+}
+function delAlumno(ai){
+  _showDlg('¿Eliminar alumno?','Esta acción no se puede deshacer.','confirm','','',function(ok){
+    if(!ok) return;
+    S.materias[S.activeMat].alumnos.splice(ai,1);
+    renderSubTab();
+  });
+}
+// importAlumnos defined later in EXCEL EXPORTS section
+
+// ════════════════════════════════════════════════
+// CICLOS VIEW
+// ════════════════════════════════════════════════
+function renderCiclosView(){
+  document.getElementById('content').innerHTML = `
+  <div class="ch">
+    <div><h2>Ciclos Escolares</h2><div class="bc">Gestión y administración de ciclos</div></div>
+    <button class="btn btn-green" onclick="showModal('ciclo',-1)">+ Nuevo Ciclo</button>
+  </div>
+  <div class="sec" style="padding-top:14px">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Ciclo</th><th>Período</th><th>Materias</th><th>Alumnos</th><th>Prom.</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        ${S.ciclos.map((ci,i)=>{
+          const mats = S.materias.filter(m=>m.cicloId===ci.id);
+          const ta = mats.reduce((s,m)=>s+m.alumnos.length,0);
+          const pg = mats.length ? mats.reduce((s,m)=>s+calcPromGrupo(m),0)/mats.length : 0;
+          return `<tr>
+            <td style="color:var(--txt);font-weight:700">${ci.nombre}</td>
+            <td style="font-size:10px">${ci.inicio||'—'} → ${ci.fin||'—'}</td>
+            <td>${mats.length}</td>
+            <td>${ta}</td>
+            <td style="color:${pg>=7?'var(--green)':'var(--txt3)'}">${pg>0?pg.toFixed(1):'—'}</td>
+            <td><span class="badge ${colorBadge(ci.color)}">${ci.color==='green'?'Activo':ci.color==='gray'?'Cerrado':'En Curso'}</span></td>
+            <td><div style="display:flex;gap:4px">
+              <button class="btn btn-xs" onclick="showModal('ciclo',${i})">✏</button>
+              <button class="btn btn-xs btn-red" onclick="delCiclo(${i})">🗑</button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+  renderSidebar();
+}
+
+// ════════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════════
+function showModal(type, idx, e){
+  if(e) e.stopPropagation();
+  document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden'));
+  document.getElementById('overlay').classList.remove('hidden');
+
+  if(type==='ciclo'){
+    S.editCiclo = idx;
+    const ci = idx>=0 ? S.ciclos[idx] : null;
+    document.getElementById('mciclo-ttl').textContent = ci?'Editar Ciclo':'Nuevo Ciclo Escolar';
+    document.getElementById('mc-nombre').value = ci?ci.nombre:'';
+    document.getElementById('mc-inicio').value = ci?ci.inicio:'';
+    document.getElementById('mc-fin').value = ci?ci.fin:'';
+    document.getElementById('mc-color').value = ci?ci.color:'green';
+    document.getElementById('modal-ciclo').classList.remove('hidden');
+
+  } else if(type==='materia'){
+    S.editMat = idx;
+    const mat = idx>=0 ? S.materias[idx] : null;
+    document.getElementById('mmat-ttl').textContent = mat?'Editar Materia':'Nueva Materia';
+    document.getElementById('mm-nombre').value = mat?mat.nombre:'';
+    document.getElementById('mm-clave').value = mat?mat.clave:'';
+    document.getElementById('mm-color').value = mat?mat.color:'green';
+    const sel = document.getElementById('mm-ciclo');
+    sel.innerHTML = S.ciclos.map(c=>`<option value="${c.id}"${mat&&mat.cicloId===c.id?' selected':''}>${c.nombre}</option>`).join('');
+    S._pondRows = mat ? Object.entries(mat.pond).map(([k,v])=>({k,v})) : [{k:'Exámenes',v:50},{k:'Tareas',v:50}];
+    renderPondEditor();
+    document.getElementById('modal-materia').classList.remove('hidden');
+
+  } else if(type==='modulo'){
+    S.editMod = idx;
+    const mod = idx>=0 ? S.materias[S.activeMat].modulos[idx] : null;
+    document.getElementById('mmod-ttl').textContent = mod?'Editar Módulo':'Nuevo Módulo';
+    document.getElementById('mmod-nombre').value = mod?mod.nombre:'';
+    document.getElementById('mmod-fecha').value = mod?mod.fecha:'';
+    document.getElementById('mmod-temas').value = mod?mod.temas:'';
+    document.getElementById('mmod-obj').value = mod?mod.objetivos:'';
+    document.getElementById('modal-modulo').classList.remove('hidden');
+
+  } else if(type==='report'){
+    buildReport();
+    document.getElementById('modal-report').classList.remove('hidden');
+  }
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.add('hidden');
+  document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden'));
+}
+
+function overlayClick(e){
+  if(e.target===document.getElementById('overlay')) closeModal();
+}
+
+function renderPondEditor(){
+  document.getElementById('pond-editor').innerHTML = S._pondRows.map((r,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+      <input type="text" value="${r.k}" style="flex:2" onchange="updPR(${i},'k',this.value)" placeholder="Categoría">
+      <input type="number" min="0" max="100" value="${r.v}" style="width:65px" onchange="updPR(${i},'v',+this.value)" placeholder="%">
+      <span style="font-size:10px;color:var(--txt3)">%</span>
+      <button class="btn btn-xs btn-red" onclick="delPR(${i})">🗑</button>
+    </div>`).join('');
+  const total = S._pondRows.reduce((s,r)=>s+r.v,0);
+  const el = document.getElementById('pond-total');
+  el.textContent = `Total: ${total}% ${total===100?'✓ Correcto':'⚠ Debe sumar 100%'}`;
+  el.style.color = total===100 ? 'var(--green)' : 'var(--red)';
+}
+function updPR(i,f,v){ S._pondRows[i][f]=v; renderPondEditor(); }
+function delPR(i){ S._pondRows.splice(i,1); renderPondEditor(); }
+function addPondRow(){ S._pondRows.push({k:'Nueva Categoría',v:0}); renderPondEditor(); }
+
+function saveCiclo(){
+  const nombre = document.getElementById('mc-nombre').value.trim();
+  if(!nombre){ _showDlg('Campo requerido','Escribe el nombre del ciclo escolar.','alert','','',null); return; }
+  const obj = {
+    id: S.editCiclo>=0 ? S.ciclos[S.editCiclo].id : S.nextCicloId++,
+    nombre, color: document.getElementById('mc-color').value,
+    inicio: document.getElementById('mc-inicio').value,
+    fin: document.getElementById('mc-fin').value
+  };
+  if(S.editCiclo>=0) S.ciclos[S.editCiclo]=obj;
+  else S.ciclos.push(obj);
+  closeModal(); renderAll(); toast('Ciclo guardado ✓');
+}
+
+function saveMateria(){
+  const nombre = document.getElementById('mm-nombre').value.trim();
+  if(!nombre){ _showDlg('Campo requerido','Escribe el nombre de la materia.','alert','','',null); return; }
+  const pond = {};
+  S._pondRows.forEach(r=>{ if(r.k) pond[r.k]=r.v; });
+  const obj = {
+    id: S.editMat>=0 ? S.materias[S.editMat].id : S.nextMatId++,
+    cicloId: parseInt(document.getElementById('mm-ciclo').value),
+    nombre, clave: document.getElementById('mm-clave').value.trim(),
+    color: document.getElementById('mm-color').value, pond,
+    modulos: S.editMat>=0 ? S.materias[S.editMat].modulos : [],
+    alumnos: S.editMat>=0 ? S.materias[S.activeMat].alumnos : [],
+  };
+  if(S.editMat>=0){
+    S.materias[S.editMat]=obj;
+  } else {
+    obj.alumnos = [];
+    S.materias.push(obj);
+    S.activeMat = S.materias.length-1;
+  }
+  closeModal(); renderAll(); toast('Materia guardada ✓');
+}
+
+function deleteMat(i, e){
+  if(e) e.stopPropagation();
+  _showDlg('¿Eliminar esta materia?','Se eliminarán todos sus módulos y calificaciones.','confirm','','',function(ok){
+    if(!ok) return;
+    S.materias.splice(i,1);
+    if(S.activeMat>=S.materias.length) S.activeMat=0;
+    renderAll(); toast('Materia eliminada');
+  });
+}
+
+function saveModulo(){
+  const nombre = document.getElementById('mmod-nombre').value.trim();
+  if(!nombre){ _showDlg('Campo requerido','Escribe el nombre del módulo.','alert','','',null); return; }
+  const mat = S.materias[S.activeMat];
+  const mod = {
+    id: S.editMod>=0 ? mat.modulos[S.editMod].id : S.nextModId++,
+    nombre, fecha: document.getElementById('mmod-fecha').value,
+    temas: document.getElementById('mmod-temas').value,
+    objetivos: document.getElementById('mmod-obj').value,
+    rubros: S.editMod>=0 ? mat.modulos[S.editMod].rubros : [],
+    evidencias: S.editMod>=0 ? mat.modulos[S.editMod].evidencias : [],
+    open: true
+  };
+  if(S.editMod>=0) mat.modulos[S.editMod]=mod;
+  else mat.modulos.push(mod);
+  closeModal(); setSubTab('plan'); toast('Módulo guardado ✓');
+}
+
+function delCiclo(i){
+  _showDlg('¿Eliminar este ciclo escolar?','También se eliminarán todas sus materias y calificaciones.','confirm','','',function(ok){
+    if(!ok) return;
+    const cid = S.ciclos[i].id;
+    S.ciclos.splice(i,1);
+    S.materias = S.materias.filter(m=>m.cicloId!==cid);
+    if(S.activeCiclo>=S.ciclos.length) S.activeCiclo=0;
+    renderAll(); toast('Ciclo eliminado');
+  });
+}
+
+// ════════════════════════════════════════════════
+// REPORTE MODAL
+// ════════════════════════════════════════════════
+function buildReport(){
+  const c = S.ciclos[S.activeCiclo];
+  const mats = activeMats();
+  document.getElementById('rep-ciclo').textContent = c.nombre;
+  const ta = mats.reduce((s,m)=>s+m.alumnos.length,0);
+  const pg = mats.length ? mats.reduce((s,m)=>s+calcPromGrupo(m),0)/mats.length : 0;
+  document.getElementById('report-body').innerHTML = `
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+    ${[
+      ['Materias', mats.length, 'txt-green'],
+      ['Alumnos', ta, 'txt-blue'],
+      ['Módulos', mats.reduce((s,m)=>s+m.modulos.length,0), 'txt-amber'],
+      ['Prom. General', pg.toFixed(2), pg>=7?'txt-green':'txt-red'],
+    ].map(([l,v,c])=>`<div class="kpi"><div class="kpi-v ${c}">${v}</div><div class="kpi-l">${l}</div></div>`).join('')}
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Materia</th><th>Clave</th><th>Alumnos</th><th>Módulos</th><th>Rubros</th><th>Prom. Grupo</th><th>Estado</th></tr></thead>
+    <tbody>
+      ${mats.map(mat=>{
+        const pg=calcPromGrupo(mat);
+        const tr=mat.modulos.reduce((s,m)=>s+m.rubros.length,0);
+        return`<tr>
+          <td style="color:var(--txt);font-weight:700">${mat.nombre}</td>
+          <td><span class="badge ${colorBadge(mat.color)}">${mat.clave}</span></td>
+          <td>${mat.alumnos.length}</td>
+          <td>${mat.modulos.length}</td>
+          <td>${tr}</td>
+          <td style="font-weight:700;color:${pg>=7?'var(--green)':'var(--red)'}">${pg.toFixed(2)}</td>
+          <td><span class="badge ${pg>=7?'b-green':'b-red'}">${pg>=7?'Aprobatorio':'En Riesgo'}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+// ════════════════════════════════════════════════
+// EXCEL EXPORTS — pure JS, sin dependencias externas
+// ════════════════════════════════════════════════
+
+// ── Minimal XLSX writer ──────────────────────────
+function _xlsxEscape(v){
+  if(v === null || v === undefined) return '';
+  var s = String(v);
+  if(s.match(/[<>&"]/)) s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return s;
+}
+
+function _buildXlsx(sheets){
+  // sheets = [{name, rows: [[{v, bold, color, bg},...],...]}, ...]
+  // Returns a Blob with a real .xlsx file (Office Open XML)
+  var wsXmls = [];
+  var sharedStrings = [];
+  var ssMap = {};
+  function si(s){ s = String(s||''); if(ssMap[s]===undefined){ssMap[s]=sharedStrings.length;sharedStrings.push(s);} return ssMap[s]; }
+
+  var styleColors = {
+    green:'FF3FB950', blue:'FF58A6FF', amber:'FFD29922',
+    red:'FFF85149', white:'FFE6EDF3', muted:'FF8B949E', dark:'FF0D1117',
+    bg1:'FF161B22', bg2:'FF1C2128', hdr:'FF0D1117', sub:'FF1C2128'
+  };
+
+  // Build styles XML
+  var numFmtXml = '<numFmts count="1"><numFmt numFmtId="164" formatCode="0.00"/></numFmts>';
+  
+  // fonts: 0=normal, 1=bold, 2=bold-green, 3=bold-blue, 4=bold-amber, 5=bold-red, 6=bold-white, 7=muted
+  var fontsXml = '<fonts count="8">' +
+    '<font><sz val="10"/><name val="Courier New"/><color rgb="FF8B949E"/></font>' +
+    '<font><b/><sz val="10"/><name val="Courier New"/><color rgb="FF8B949E"/></font>' +
+    '<font><b/><sz val="11"/><name val="Courier New"/><color rgb="FF3FB950"/></font>' +
+    '<font><b/><sz val="10"/><name val="Courier New"/><color rgb="FF58A6FF"/></font>' +
+    '<font><b/><sz val="10"/><name val="Courier New"/><color rgb="FFD29922"/></font>' +
+    '<font><b/><sz val="10"/><name val="Courier New"/><color rgb="FFF85149"/></font>' +
+    '<font><b/><sz val="10"/><name val="Courier New"/><color rgb="FFE6EDF3"/></font>' +
+    '<font><sz val="10"/><name val="Courier New"/><color rgb="FFE6EDF3"/></font>' +
+    '<font><sz val="13"/><b/><name val="Courier New"/><color rgb="FF3FB950"/></font>' +
+    '</fonts>';
+
+  // fills: 0=none,1=gray(req),2=hdr,3=sub,4=row1,5=row2,6=green-bg,7=red-bg,8=amber-bg
+  var fillsXml = '<fills count="9">' +
+    '<fill><patternFill patternType="none"/></fill>' +
+    '<fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF0D1117"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF1C2128"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF161B22"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF0D1117"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF0D2B1A"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF2B0D0D"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF2B1D09"/></patternFill></fill>' +
+    '</fills>';
+
+  var borderXml = '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>' +
+    '<border><left/><right/><top/><bottom style="thin"><color rgb="FF30363D"/></bottom><diagonal/></border></borders>';
+
+  // xfs: each {fontId, fillId, numFmtId, align}
+  // 0=default, 1=hdr-title, 2=sub-hdr, 3=data-normal, 4=data-hi, 5=data-green, 6=data-red, 7=data-amber, 8=data-blue, 9=num-normal, 10=num-green, 11=num-red, 12=num-amber, 13=num-blue
+  function xf(fontId, fillId, numFmtId, halign, borderId){
+    borderId = borderId||1;
+    var a = halign ? ' applyAlignment="1"><alignment horizontal="'+halign+'" vertical="center"/></xf>' : '/>';
+    return '<xf numFmtId="'+(numFmtId||0)+'" fontId="'+fontId+'" fillId="'+fillId+'" borderId="'+borderId+'" applyFont="1" applyFill="1" applyBorder="1"'+(halign?'':'/>')+a;
+  }
+  var cellXfsXml = '<cellXfs count="20">' +
+    xf(0,0,0,'center') +        // 0 default
+    xf(2,2,0,'left') +          // 1 title-hdr green bold
+    xf(3,3,0,'center') +        // 2 sub-hdr blue bold  
+    xf(0,4,0,'center') +        // 3 data-row1 muted center
+    xf(7,4,0,'left') +          // 4 data-row1 white left (names)
+    xf(5,4,0,'center') +        // 5 data green
+    xf(5,4,0,'center') +        // 6 data red (reuse idx 6 differently below)
+    xf(4,4,0,'center') +        // 7 data amber
+    xf(3,4,0,'center') +        // 8 data blue
+    xf(0,4,164,'center') +      // 9 num normal
+    xf(5,4,164,'center') +      // 10 num green
+    xf(6,4,164,'center') +      // 11 num red (font 6=white on red-bg won't work, use font5=red)
+    xf(4,4,164,'center') +      // 12 num amber
+    xf(3,4,164,'center') +      // 13 num blue
+    xf(1,3,0,'center') +        // 14 sub-hdr bold muted on sub bg
+    xf(0,5,0,'center') +        // 15 data-row2 center
+    xf(7,5,0,'left') +          // 16 data-row2 white left
+    xf(5,5,164,'center') +      // 17 row2 num green
+    xf(6,5,164,'center') +      // 18 row2 num red
+    xf(4,5,164,'center') +      // 19 row2 num amber
+    '</cellXfs>';
+
+  var ssXml = '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    numFmtXml + fontsXml + fillsXml + borderXml +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    cellXfsXml +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  sheets.forEach(function(sh){
+    var rows = sh.rows;
+    var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    xml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+    // Column widths
+    if(sh.cols){
+      xml += '<cols>';
+      sh.cols.forEach(function(w,i){ xml += '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>'; });
+      xml += '</cols>';
+    }
+    xml += '<sheetData>';
+    rows.forEach(function(row, ri){
+      xml += '<row r="'+(ri+1)+'" ht="18" customHeight="1">';
+      row.forEach(function(cell, ci){
+        var col = String.fromCharCode(65 + (ci < 26 ? ci : 0));
+        if(ci >= 26){ col = String.fromCharCode(65+Math.floor(ci/26)-1)+String.fromCharCode(65+ci%26); }
+        var addr = col+(ri+1);
+        var s = cell.s || 3;
+        var v = cell.v !== undefined ? cell.v : '';
+        if(typeof v === 'number'){
+          xml += '<c r="'+addr+'" s="'+s+'" t="n"><v>'+v+'</v></c>';
+        } else {
+          var idx = si(String(v));
+          xml += '<c r="'+addr+'" s="'+s+'" t="s"><v>'+idx+'</v></c>';
+        }
+      });
+      xml += '</row>';
+    });
+    xml += '</sheetData></worksheet>';
+    wsXmls.push(xml);
+  });
+
+  var ssXmlOut = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="'+sharedStrings.length+'" uniqueCount="'+sharedStrings.length+'">' +
+    sharedStrings.map(function(s){ return '<si><t xml:space="preserve">'+_xlsxEscape(s)+'</t></si>'; }).join('') +
+    '</sst>';
+
+  var wbXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    '<sheets>' + sheets.map(function(s,i){ return '<sheet name="'+_xlsxEscape(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+2)+'"/>'; }).join('') + '</sheets></workbook>';
+
+  var wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' +
+    sheets.map(function(s,i){ return '<Relationship Id="rId'+(i+3)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'; }).join('') +
+    '</Relationships>';
+
+  var appRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>' +
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    sheets.map(function(s,i){ return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('') +
+    '</Types>';
+
+  // Use JSZip from CDN or build manually
+  // We'll use a pure-JS zip approach
+  return {wbXml, wbRels, appRels, ct, ssXmlOut, ssXml, wsXmls};
+}
+
+function _downloadXlsx(sheets, filename){
+  // Build files object
+  var files = _buildXlsx(sheets);
+  // We need JSZip - load it dynamically
+  if(typeof JSZip === 'undefined'){
+    var sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload = function(){ _doZip(files, sheets, filename); };
+    sc.onerror = function(){ _downloadCsv(sheets, filename); };
+    document.head.appendChild(sc);
+  } else {
+    _doZip(files, sheets, filename);
+  }
+}
+
+function _doZip(files, sheets, filename){
+  var zip = new JSZip();
+  zip.file('[Content_Types].xml', files.ct);
+  zip.file('_rels/.rels', files.appRels);
+  zip.file('xl/workbook.xml', files.wbXml);
+  zip.file('xl/_rels/workbook.xml.rels', files.wbRels);
+  zip.file('xl/styles.xml', files.ssXml);
+  zip.file('xl/sharedStrings.xml', files.ssXmlOut);
+  sheets.forEach(function(s,i){
+    zip.file('xl/worksheets/sheet'+(i+1)+'.xml', files.wsXmls[i]);
+  });
+  zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+    .then(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+      toast('✓ Excel descargado: ' + filename);
+    });
+}
+
+function _downloadCsv(sheets, filename){
+  // Fallback: CSV if zip unavailable
+  var csvParts = sheets.map(function(sh){
+    return '=== ' + sh.name + ' ===\n' +
+      sh.rows.map(function(row){ return row.map(function(c){ var v=String(c.v||''); if(v.includes(','))v='"'+v+'"'; return v; }).join(','); }).join('\n');
+  }).join('\n\n');
+  var blob = new Blob(['\uFEFF'+csvParts], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename.replace('.xlsx','.csv');
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  toast('✓ CSV descargado (fallback)');
+}
+
+// ── Cell helpers ──────────────────────────────────
+// s codes: 1=title, 2=sub-hdr, 3=data-center, 4=data-left(name), 5=data-green
+// 6=data-red(reuse as red text), 7=data-amber, 8=data-blue
+// 9=num, 10=num-green, 11=num-red, 12=num-amber, 13=num-blue
+// 14=sub-hdr-muted, 15=row2-center, 16=row2-left, 17=row2-num-green, 18=row2-num-red, 19=row2-num-amber
+function C(v,s){ return {v:v, s:s||3}; }
+function Cn(v,s){ return {v:typeof v==='number'?v:parseFloat(v)||0, s:s||9}; }
+function rowBg(i){ return i%2===0 ? 0 : 1; } // 0=row1 bg, 1=row2 bg; offset by 3 for s
+
+function Ctxt(v, even){ return C(v, even?4:16); }     // name cell
+function Cnum(v, colorKey, even){
+  var sMap = {green:even?10:17, red:even?11:18, amber:even?12:19, blue:even?13:13, '':even?9:9};
+  return Cn(v, sMap[colorKey]||( even?9:9 ));
+}
+function Chdr(v){ return C(v, 2); }
+function Ctitle(v){ return C(v, 1); }
+
+function exportCalifExcel(){
+  var mat = S.materias[S.activeMat];
+  var c = S.ciclos[S.activeCiclo];
+  var modRubros = [];
+  mat.modulos.forEach(function(mod){ mod.rubros.forEach(function(r,ri){ modRubros.push({mod:mod,ri:ri,r:r}); }); });
+  var cols = [4, 26].concat(modRubros.map(function(){ return 18; })).concat([12]);
+
+  var rows = [];
+  // Title
+  var titleRow = [Ctitle('UPAV · Calificaciones · ' + mat.nombre + ' · ' + c.nombre)];
+  for(var i=1;i<cols.length;i++) titleRow.push(C('',1));
+  rows.push(titleRow);
+  // Headers
+  var hdr = [Chdr('#'), Chdr('Alumno')];
+  modRubros.forEach(function(x){ hdr.push(Chdr(x.mod.nombre.split(':')[0] + ' · ' + x.r.nombre)); });
+  hdr.push(Chdr('Prom. Final'));
+  rows.push(hdr);
+  // Data
+  mat.alumnos.forEach(function(al,ai){
+    var pf = calcPromAlumno(mat, al);
+    var even = ai%2===0;
+    var row = [C(String(ai+1), even?3:15), Ctxt(al.nombre, even)];
+    modRubros.forEach(function(x){
+      var v = al.notas[nKey(x.mod.id, x.ri)] || 0;
+      row.push(Cnum(v, v>=7?'green':'red', even));
+    });
+    row.push(Cnum(pf, pf>=7?'green':'red', even));
+    rows.push(row);
+  });
+  // Prom grupo
+  var pgRow = [C('', 14), C('PROMEDIO GRUPO', 14)];
+  modRubros.forEach(function(x){
+    var vals = mat.alumnos.map(function(al){ return al.notas[nKey(x.mod.id,x.ri)]||0; });
+    var p = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0)/vals.length*10)/10 : 0;
+    pgRow.push(Cnum(p,'blue',true));
+  });
+  pgRow.push(Cnum(calcPromGrupo(mat),'amber',true));
+  rows.push(pgRow);
+
+  _downloadXlsx([{name:'Calificaciones', rows:rows, cols:cols}], 'Calificaciones_'+mat.nombre+'_'+c.nombre+'.xlsx');
+}
+
+function exportAsistExcel(){
+  var mat = S.materias[S.activeMat];
+  var c = S.ciclos[S.activeCiclo];
+  var sesiones = ['Ses.1','Ses.2','Ses.3','Ses.4','Ses.5','Ses.6','Ses.7','Ses.8'];
+  var cols = [4,28,7,7,7,7,7,7,7,7,12,10];
+  var rows = [];
+  var titleRow = [Ctitle('UPAV · Asistencia · '+mat.nombre+' · '+c.nombre)];
+  for(var i=1;i<cols.length;i++) titleRow.push(C('',1));
+  rows.push(titleRow);
+  var hdr = [Chdr('#'), Chdr('Alumno')];
+  sesiones.forEach(function(s){ hdr.push(Chdr(s)); });
+  hdr.push(Chdr('Asistencias')); hdr.push(Chdr('% Asist.'));
+  rows.push(hdr);
+  var sColor = {A:'green',F:'red',R:'amber',J:'blue'};
+  mat.alumnos.forEach(function(al,ai){
+    var row2 = al.asist||Array(8).fill('A');
+    var ac = row2.filter(function(x){return x==='A';}).length;
+    var pct = Math.round(ac/row2.length*100);
+    var even = ai%2===0;
+    var row = [C(String(ai+1),even?3:15), Ctxt(al.nombre,even)];
+    row2.forEach(function(s){ row.push(C(s, even?3:15)); });
+    row.push(Cnum(ac,'blue',even));
+    row.push(C(pct+'%', pct>=80?(even?5:17):pct>=60?(even?7:19):(even?6:18)));
+    rows.push(row);
+  });
+  _downloadXlsx([{name:'Asistencia', rows:rows, cols:cols}], 'Asistencia_'+mat.nombre+'_'+c.nombre+'.xlsx');
+}
+
+function exportAlumnosExcel(){
+  var mat = S.materias[S.activeMat];
+  var c = S.ciclos[S.activeCiclo];
+  var cols = [4,30,13,15,14];
+  var rows = [];
+  var titleRow = [Ctitle('UPAV · Alumnos · '+mat.nombre+' · '+c.nombre)];
+  for(var i=1;i<5;i++) titleRow.push(C('',1));
+  rows.push(titleRow);
+  rows.push([Chdr('#'),Chdr('Nombre'),Chdr('Prom. Final'),Chdr('% Asistencia'),Chdr('Estado')]);
+  mat.alumnos.forEach(function(al,ai){
+    var pf = calcPromAlumno(mat,al);
+    var pct = asistPct(al);
+    var even = ai%2===0;
+    rows.push([
+      C(String(ai+1),even?3:15), Ctxt(al.nombre,even),
+      Cnum(pf, pf>=7?'green':'red', even),
+      C(pct+'%', pct>=80?(even?5:17):(even?7:19)),
+      C(pf>=7?'Aprobado':'En Riesgo', pf>=7?(even?5:17):(even?6:18))
+    ]);
+  });
+  _downloadXlsx([{name:'Alumnos', rows:rows, cols:cols}], 'Alumnos_'+mat.nombre+'.xlsx');
+}
+
+function exportReporteExcel(){
+  var c = S.ciclos[S.activeCiclo];
+  var mats = activeMats();
+  var sheets = [];
+
+  // Sheet 1: Resumen
+  var rCols = [25,12,10,10,9,12,14];
+  var rRows = [];
+  var tr1 = [Ctitle('REPORTE EJECUTIVO UPAV · '+c.nombre)];
+  for(var i=1;i<7;i++) tr1.push(C('',1));
+  rRows.push(tr1);
+  rRows.push([Chdr('Materia'),Chdr('Clave'),Chdr('Alumnos'),Chdr('Módulos'),Chdr('Rubros'),Chdr('Prom. Grupo'),Chdr('Estado')]);
+  mats.forEach(function(mat,mi){
+    var pg=calcPromGrupo(mat);
+    var tr2=mat.modulos.reduce(function(s,m){return s+m.rubros.length;},0);
+    var even=mi%2===0;
+    rRows.push([
+      Ctxt(mat.nombre,even), C(mat.clave,even?4:16),
+      C(mat.alumnos.length,even?3:15), C(mat.modulos.length,even?3:15), C(tr2,even?3:15),
+      Cnum(pg,pg>=7?'green':'red',even),
+      C(pg>=7?'Aprobatorio':'En Riesgo', pg>=7?(even?5:17):(even?6:18))
+    ]);
+  });
+  sheets.push({name:'Resumen', rows:rRows, cols:rCols});
+
+  // One sheet per materia
+  mats.forEach(function(mat){
+    var modRubros=[];
+    mat.modulos.forEach(function(mod){ mod.rubros.forEach(function(r,ri){ modRubros.push({mod:mod,ri:ri,r:r}); }); });
+    var mCols=[4,24].concat(modRubros.map(function(){return 16;})).concat([12]);
+    var mRows=[];
+    var mt=[Ctitle(mat.nombre+' · '+c.nombre)];
+    for(var i=1;i<mCols.length;i++) mt.push(C('',1));
+    mRows.push(mt);
+    var mh=[Chdr('#'),Chdr('Alumno')];
+    modRubros.forEach(function(x){ mh.push(Chdr(x.mod.nombre.split(':')[0]+'·'+x.r.nombre)); });
+    mh.push(Chdr('Prom.Final'));
+    mRows.push(mh);
+    mat.alumnos.forEach(function(al,ai){
+      var pf=calcPromAlumno(mat,al);
+      var even=ai%2===0;
+      var row=[C(String(ai+1),even?3:15),Ctxt(al.nombre,even)];
+      modRubros.forEach(function(x){ var v=al.notas[nKey(x.mod.id,x.ri)]||0; row.push(Cnum(v,v>=7?'green':'red',even)); });
+      row.push(Cnum(pf,pf>=7?'green':'red',even));
+      mRows.push(row);
+    });
+    sheets.push({name:mat.nombre.substring(0,28), rows:mRows, cols:mCols});
+  });
+
+  _downloadXlsx(sheets, 'Reporte_UPAV_'+c.nombre+'.xlsx');
+}
+
+// importAlumnos still uses FileReader — no XLSX lib needed for reading
+// We rewrite it to parse CSV or use a simple binary reader
+function importAlumnos(e){
+  var f = e.target.files[0];
+  if(!f) return;
+  var mat = S.materias[S.activeMat];
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      var text = '';
+      // Try to parse as CSV first (works for .csv)
+      // For .xlsx we need to extract the XML manually
+      var data = ev.target.result;
+      var nombres = [];
+      
+      if(f.name.endsWith('.csv')){
+        text = new TextDecoder('utf-8').decode(new Uint8Array(data));
+        var lines = text.split('\n');
+        lines.forEach(function(line,i){
+          if(i===0) return;
+          var col = line.split(',')[0].replace(/^["']|["']$/g,'').trim();
+          if(col && col.toLowerCase()!=='nombre') nombres.push(col);
+        });
+      } else {
+        // xlsx: find sharedStrings.xml in the zip
+        // Simple approach: scan for text content in the binary
+        var bytes = new Uint8Array(data);
+        var str = '';
+        for(var i=0;i<bytes.length;i++) if(bytes[i]>31&&bytes[i]<128) str+=String.fromCharCode(bytes[i]);
+        // Extract names from <t>...</t> tags in sharedStrings
+        var matches = str.match(/<t[^>]*>([^<]{3,50})<\/t>/g)||[];
+        var seen = new Set();
+        var skipFirst = true;
+        matches.forEach(function(m){
+          var v = m.replace(/<[^>]+>/g,'').trim();
+          if(skipFirst&&v.toLowerCase()==='nombre'){skipFirst=false;return;}
+          if(!seen.has(v)&&v.length>2&&!/^\d+$/.test(v)&&!/^[A-Z0-9\-\.\_]+$/.test(v)){
+            seen.add(v); nombres.push(v);
+          }
+        });
+      }
+
+      var added = 0;
+      nombres.forEach(function(nombre){
+        if(!mat.alumnos.find(function(a){return a.nombre===nombre;})){
+          mat.alumnos.push({nombre:nombre, notas:{}, asist:Array(8).fill('A')});
+          added++;
+        }
+      });
+      if(added>0){ renderSubTab(); toast(added+' alumno(s) importado(s) ✓'); }
+      else { _showDlg('Sin datos nuevos','No se encontraron alumnos nuevos en el archivo.','alert','','',null); }
+    } catch(err){
+      _showDlg('Error al leer el archivo','Verifica que sea .xlsx o .csv con columna Nombre.','alert','','',null);
+    }
+  };
+  reader.readAsArrayBuffer(f);
+}
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+let _toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>el.classList.add('hidden'),2500);
+}
+
+// ════════════════════════════════════════════════
+// CUSTOM DIALOGS — callback-based (no async/await)
+// confirm/alert/prompt nativos bloqueados en iframes
+// ════════════════════════════════════════════════
+let _dlgCB = null;
+
+function _showDlg(msg, sub, type, placeholder, defaultVal, callback){
+  _dlgCB = callback || function(){};
+  document.getElementById('dlg-msg').textContent = msg;
+  var subEl = document.getElementById('dlg-sub');
+  subEl.textContent = sub || '';
+  subEl.style.display = sub ? '' : 'none';
+  var inp = document.getElementById('dlg-input');
+  if(type === 'prompt'){
+    inp.classList.remove('hidden');
+    inp.placeholder = placeholder || '';
+    inp.value = defaultVal || '';
+    setTimeout(function(){ inp.focus(); }, 60);
+  } else {
+    inp.classList.add('hidden');
+  }
+  var btns = document.getElementById('dlg-btns');
+  if(type === 'alert'){
+    btns.innerHTML = '<button class="btn btn-green" onclick="_dlgOk()">Aceptar</button>';
+  } else if(type === 'confirm'){
+    btns.innerHTML = '<button class="btn" onclick="_dlgCancel()">Cancelar</button>' +
+      '<button class="btn btn-red" onclick="_dlgOk()">Sí, eliminar</button>';
+  } else {
+    btns.innerHTML = '<button class="btn" onclick="_dlgCancel()">Cancelar</button>' +
+      '<button class="btn btn-green" onclick="_dlgOkPrompt()">Aceptar</button>';
+  }
+  document.getElementById('dlg-overlay').style.display = 'flex';
+}
+function _dlgOk(){
+  document.getElementById('dlg-overlay').style.display = 'none';
+  var cb = _dlgCB; _dlgCB = null;
+  if(cb) cb(true);
+}
+function _dlgCancel(){
+  document.getElementById('dlg-overlay').style.display = 'none';
+  var cb = _dlgCB; _dlgCB = null;
+  if(cb) cb(false);
+}
+function _dlgOkPrompt(){
+  var v = document.getElementById('dlg-input').value.trim();
+  document.getElementById('dlg-overlay').style.display = 'none';
+  var cb = _dlgCB; _dlgCB = null;
+  if(cb) cb(v || null);
+}
+document.addEventListener('keydown', function(e){
+  if(document.getElementById('dlg-overlay').style.display !== 'flex') return;
+  if(e.key === 'Escape'){ _dlgCancel(); return; }
+  if(e.key === 'Enter'){
+    var inp = document.getElementById('dlg-input');
+    if(!inp.classList.contains('hidden')) _dlgOkPrompt();
+    else _dlgOk();
+  }
+});
+
+// ════════════════════════════════════════════════
+// FIREBASE REST API — sin SDK, solo fetch()
+// No depende de ningún CDN externo
+// ════════════════════════════════════════════════
+var FB = {
+  apiKey:    'AIzaSyBjcblj8HNjK8aNZc5PGCTuUYYGopkAmHk',
+  projectId: 'upav-docente',
+  doc:       'upav/datos'  // colección/documento
+};
+var FB_BASE = 'https://firestore.googleapis.com/v1/projects/'+FB.projectId+'/databases/(default)/documents/';
+var FB_DOC  = FB_BASE + FB.doc + '?key=' + FB.apiKey;
+
+var _saveTimer       = null;
+var _miUltimoBatch   = 0;
+var _autoSaveEnabled = false;
+var _pollTimer       = null;
+var STORAGE_KEY      = 'upav_docente_v1';
+
+// ── UI helpers ──
+function setSyncStatus(txt, color){
+  var el = document.getElementById('sync-status');
+  if(el){ el.textContent = txt; el.style.color = color||'#8b949e'; }
+  var dot = document.getElementById('sync-dot');
+  if(dot) dot.style.background = color==='#3fb950'||color==='#58a6ff' ? color : color==='#f85149' ? '#f85149' : '#d29922';
+}
+var _debugLog = [];
+function dbg(msg){
+  var t = new Date().toISOString().substr(11,8);
+  _debugLog.unshift('['+t+'] '+msg);
+  if(_debugLog.length>25) _debugLog.pop();
+  console.log('[UPAV]', msg);
+}
+function mostrarDebug(){
+  _showDlg('Diagnóstico', _debugLog.slice(0,12).join('\n').substring(0,400)||'Sin eventos', 'alert','','',null);
+}
+function hms(){
+  var d=new Date();
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0');
+}
+
+// ── Firestore REST: convertir objeto JS ↔ Firestore fields ──
+function toFSValue(v){
+  if(v===null||v===undefined) return {nullValue:null};
+  if(typeof v==='boolean') return {booleanValue:v};
+  if(typeof v==='number') return {doubleValue:v};
+  if(typeof v==='string') return {stringValue:v};
+  if(Array.isArray(v)) return {arrayValue:{values:v.map(toFSValue)}};
+  if(typeof v==='object'){
+    var fields={};
+    Object.keys(v).forEach(function(k){ fields[k]=toFSValue(v[k]); });
+    return {mapValue:{fields:fields}};
+  }
+  return {stringValue:String(v)};
+}
+
+function fromFSValue(fv){
+  if(!fv) return null;
+  if('nullValue'    in fv) return null;
+  if('booleanValue' in fv) return fv.booleanValue;
+  // integerValue comes as string from REST API
+  if('integerValue' in fv) return Number(fv.integerValue);
+  if('doubleValue'  in fv) return Number(fv.doubleValue);
+  if('stringValue'  in fv) return fv.stringValue;
+  if('arrayValue'   in fv){
+    // Empty arrays come as {arrayValue:{}} with no 'values' key
+    var vals = fv.arrayValue && fv.arrayValue.values;
+    return Array.isArray(vals) ? vals.map(fromFSValue) : [];
+  }
+  if('mapValue'     in fv){
+    var obj={};
+    var fields=fv.mapValue.fields||{};
+    Object.keys(fields).forEach(function(k){ obj[k]=fromFSValue(fields[k]); });
+    return obj;
+  }
+  return null;
+}
+
+function objToFS(obj){
+  var fields={};
+  Object.keys(obj).forEach(function(k){ fields[k]=toFSValue(obj[k]); });
+  return {fields:fields};
+}
+
+function fsToObj(doc){
+  var obj={};
+  var fields=doc.fields||{};
+  Object.keys(fields).forEach(function(k){ obj[k]=fromFSValue(fields[k]); });
+  return obj;
+}
+
+// ── Leer documento de Firestore ──
+function fbGet(){
+  // Timeout de 8 segundos para no quedar atascado
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = controller ? setTimeout(function(){ controller.abort(); }, 8000) : null;
+  var opts = controller ? {signal: controller.signal} : {};
+  return fetch(FB_DOC, opts)
+    .then(function(r){
+      if(timer) clearTimeout(timer);
+      if(r.status===404) return null;
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json().then(function(d){ return fsToObj(d); });
+    })
+    .catch(function(e){
+      if(timer) clearTimeout(timer);
+      throw e;
+    });
+}
+
+// ── Escribir documento en Firestore (PATCH = upsert) ──
+function fbSet(data){
+  var body = JSON.stringify(objToFS(data));
+  // Construir la lista de campos para updateMask
+  var fields = Object.keys(data).map(function(k){ return 'updateMask.fieldPaths='+k; }).join('&');
+  var url = FB_DOC.replace('?key=','?'+fields+'&key=');
+  return fetch(url, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: body
+  }).then(function(r){
+    if(!r.ok) return r.text().then(function(t){ throw new Error('HTTP '+r.status+': '+t.substring(0,100)); });
+    return r.json();
+  });
+}
+
+// ── Aplicar datos al estado S ──
+function aplicarDatos(d){
+  S.ciclos      = Array.isArray(d.ciclos)   ? d.ciclos   : [];
+  S.materias    = Array.isArray(d.materias) ? d.materias : [];
+  S.activeCiclo = typeof d.activeCiclo==='number' ? d.activeCiclo : 0;
+  S.nextCicloId = d.nextCicloId || S.nextCicloId;
+  S.nextMatId   = d.nextMatId   || S.nextMatId;
+  S.nextModId   = d.nextModId   || S.nextModId;
+  if(S.activeCiclo >= S.ciclos.length)   S.activeCiclo = 0;
+  if(S.activeMat   >= S.materias.length) S.activeMat   = 0;
+}
+
+// ── Guardar en Firestore + localStorage ──
+function guardarLocal(){
+  var ahora = Date.now();
+  _miUltimoBatch = ahora; // Number from Date.now()
+  var snap = {
+    version:1, ts:ahora,
+    ciclos:S.ciclos, materias:S.materias,
+    activeCiclo:S.activeCiclo,
+    nextCicloId:S.nextCicloId, nextMatId:S.nextMatId, nextModId:S.nextModId
+  };
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(snap)); }catch(e){}
+  setSyncStatus('💾...', '#d29922');
+  dbg('Guardando ciclos='+S.ciclos.length);
+  fbSet(snap)
+    .then(function(){ setSyncStatus('☁ '+hms(), '#3fb950'); dbg('Guardado OK'); })
+    .catch(function(e){ dbg('Error guardando: '+e.message); setSyncStatus('⚠ Error guardando', '#f85149'); });
+}
+
+// ── Polling: revisar cambios cada 5 segundos ──
+var _lastRemoteTs = 0;
+function iniciarPolling(){
+  _pollTimer = setInterval(function(){
+    fbGet()
+      .then(function(d){
+        if(!d || !d.ts) return;
+        // Comparar como strings para evitar mismatch Number/String
+        if(String(d.ts) === String(_miUltimoBatch)) return; // eco propio
+        if(Number(d.ts) <= Number(_lastRemoteTs)) return;  // ya procesado
+        _lastRemoteTs = Number(d.ts);
+        dbg('Cambio remoto detectado: ts='+d.ts+' ciclos='+(d.ciclos||[]).length);
+        aplicarDatos(d);
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch(e){}
+        _baseRender();
+        setSyncStatus('☁ '+hms(), '#58a6ff');
+        toast('☁ Actualizado desde otro dispositivo');
+      })
+      .catch(function(e){ dbg('Polling error: '+e.message); });
+  }, 5000);
+}
+
+function habilitarAutoSave(){ _autoSaveEnabled = true; dbg('AutoSave ON'); }
+
+// ── Autosave en renderAll ──
+var _baseRender = renderAll;
+renderAll = function(){
+  _baseRender();
+  if(_autoSaveEnabled){
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(guardarLocal, 700);
+  }
+};
+
+// ── Autosave en notas y asistencia ──
+var _origSetNota = setNota;
+setNota = function(ai,modId,ri,v){
+  _origSetNota(ai,modId,ri,v);
+  if(_autoSaveEnabled){ clearTimeout(_saveTimer); _saveTimer = setTimeout(guardarLocal, 700); }
+};
+var _origSetAsist = setAsist;
+setAsist = function(ai,di,v){
+  _origSetAsist(ai,di,v);
+  if(_autoSaveEnabled){ clearTimeout(_saveTimer); _saveTimer = setTimeout(guardarLocal, 700); }
+};
+
+// ── Exportar / Importar ──
+function exportarDatos(){
+  var datos={version:1,app:'UPAV',guardado:new Date().toISOString(),
+    ciclos:S.ciclos,materias:S.materias,activeCiclo:S.activeCiclo,
+    nextCicloId:S.nextCicloId,nextMatId:S.nextMatId,nextModId:S.nextModId};
+  var blob=new Blob([JSON.stringify(datos,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='UPAV_datos_'+new Date().toISOString().split('T')[0]+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1000);
+  toast('💾 Datos exportados');
+}
+
+function importarDatos(e){
+  var f=e.target.files[0]; if(!f) return;
+  e.target.value='';
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var d=JSON.parse(ev.target.result);
+      if(!d.ciclos||!d.materias){ _showDlg('Archivo inválido','No es un backup de UPAV.','alert','','',null); return; }
+      var fecha=d.guardado?new Date(d.guardado).toLocaleString('es-MX'):'desconocida';
+      _showDlg('¿Cargar estos datos?','Backup del '+fecha+' — '+d.ciclos.length+' ciclos, '+d.materias.length+' materias.',
+        'confirm','','',function(ok){
+          if(!ok) return;
+          aplicarDatos(d); guardarLocal(); renderAll();
+          toast('✅ Datos importados y sincronizados');
+        });
+    }catch(err){ _showDlg('Error al leer','Verifica que sea un .json válido.','alert','','',null); }
+  };
+  reader.readAsText(f);
+}
+
+function borrarDatos(){
+  _showDlg('¿Borrar todos los datos?','Borra todo en la nube. Todos los dispositivos quedarán vacíos.','confirm','','',function(ok){
+    if(!ok) return;
+    var vacio={version:1,ts:Date.now(),ciclos:[],materias:[],activeCiclo:0,nextCicloId:10,nextMatId:10,nextModId:50};
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    aplicarDatos(vacio);
+    _baseRender();
+    fbSet(vacio)
+      .then(function(){ setSyncStatus('🗑 Vaciado','#f85149'); toast('🗑 Datos borrados en todos los dispositivos'); })
+      .catch(function(){ toast('⚠ Error al borrar en la nube'); });
+  });
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+(function(){
+  setSyncStatus('⏳ Conectando...', '#d29922');
+  _baseRender();
+
+  dbg('Cargando desde Firestore REST...');
+  fbGet()
+    .then(function(d){
+      // Firebase respondió correctamente
+      setSyncStatus('☁ '+hms(), '#3fb950'); // siempre verde cuando responde
+      if(d && Array.isArray(d.ciclos)){
+        dbg('Firebase OK: '+d.ciclos.length+' ciclos, '+(d.materias||[]).length+' materias');
+        aplicarDatos(d);
+        _miUltimoBatch = Number(d.ts) || 0;
+        _lastRemoteTs  = Number(d.ts) || 0;
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch(e){}
+        _baseRender();
+        var msg = d.ciclos.length > 0 ? '☁ '+d.ciclos.length+' ciclo(s) cargado(s)' : '☁ Firebase listo — crea tu primer ciclo';
+        setTimeout(function(){ toast(msg); }, 200);
+      } else {
+        dbg('Firebase: documento vacío o sin ciclos');
+        setTimeout(function(){ toast('👋 Bienvenido — crea tu primer ciclo escolar'); }, 400);
+      }
+      habilitarAutoSave();
+      iniciarPolling();
+    })
+    .catch(function(err){
+      var msg = err.name === 'AbortError' ? 'Timeout (8s)' : err.message;
+      dbg('ERROR Firestore: '+msg);
+      setSyncStatus('⚠ '+msg.substring(0,20), '#f85149');
+      try{
+        var raw=localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          var loc=JSON.parse(raw);
+          if(loc&&loc.ciclos&&loc.ciclos.length){
+            aplicarDatos(loc); _baseRender();
+            toast('📶 Sin conexión — mostrando datos locales');
+          }
+        }
+      }catch(le){}
+      habilitarAutoSave();
+    });
+})();
+</script>
+</body>
+</html>
