@@ -279,6 +279,21 @@ input[type=file]{display:none}
     </div>
   </div>
 
+  <!-- MODAL PEGAR LISTA -->
+  <div class="modal hidden" id="modal-pegar">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>📋 Pegar Lista de Alumnos</h3>
+    <div style="font-size:10px;color:var(--txt3);background:var(--bg2);border:1px solid var(--bdr);border-radius:4px;padding:8px 12px;margin-bottom:10px;line-height:1.5">
+      Pega los nombres, uno por línea. Puedes pegar directo desde Word/Excel/PDF: si cada línea trae columnas separadas por tabulador o varios espacios (ej. <b>Apellido Paterno · Apellido Materno · Nombre(s)</b>), se unen automáticamente en un solo nombre.
+    </div>
+    <textarea id="pegar-texto" rows="12" oninput="previewPegarLista()" placeholder="BUSTOS FLORES GEMA KRISTEL&#10;CORONA JUAREZ MAYTE&#10;ESCAMILLA MARCOS IVAN" style="width:100%;background:var(--bg3);border:1px solid var(--bdr);color:var(--txt);padding:8px;border-radius:3px;font-family:'Courier New',monospace;font-size:11px;resize:vertical"></textarea>
+    <div id="pegar-preview" style="font-size:10px;color:var(--txt3);margin-top:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="savePegarLista()">Agregar Alumnos</button>
+    </div>
+  </div>
+
   <!-- MODAL REPORTE -->
   <div class="modal wide hidden" id="modal-report">
     <button class="modal-x" onclick="closeModal()">✕</button>
@@ -871,6 +886,7 @@ function renderAlumnos(mat,el){
           ⬆ Importar Excel
           <input type="file" accept=".xlsx,.xls,.csv" onchange="importAlumnos(event)">
         </label>
+        <button class="btn btn-sm" onclick="showModal('pegar')">📋 Pegar Lista</button>
         <button class="btn btn-sm btn-green" onclick="addAlumnoManual()">+ Agregar</button>
         <button class="btn btn-sm btn-amber" onclick="exportAlumnosExcel()">⬇ Exportar Excel</button>
       </div>
@@ -913,6 +929,43 @@ function delAlumno(ai){
     if(_autoSaveEnabled) guardarLocal(); renderSubTab();
   });
 }
+function _parseNombreLinea(line){
+  // Une columnas separadas por tab o 2+ espacios (típico al pegar de Word/Excel/PDF)
+  // Ej: "BUSTOS\tFLORES\tGEMA KRISTEL"  o  "BUSTOS   FLORES   GEMA KRISTEL"
+  var parts = line.split(/\t|\s{2,}/).map(function(p){ return p.trim(); }).filter(Boolean);
+  var nombre = parts.length > 1 ? parts.join(' ') : line.trim();
+  // Normaliza espacios múltiples remanentes
+  return nombre.replace(/\s+/g,' ').trim();
+}
+
+function previewPegarLista(){
+  var raw = document.getElementById('pegar-texto').value;
+  var lineas = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  var el = document.getElementById('pegar-preview');
+  if(!lineas.length){ el.textContent = ''; return; }
+  var nombres = lineas.map(_parseNombreLinea).filter(Boolean);
+  el.innerHTML = nombres.length + ' nombre(s) detectado(s): <span style="color:var(--txt2)">' + nombres.slice(0,3).join(' · ') + (nombres.length>3?' ...':'') + '</span>';
+}
+
+function savePegarLista(){
+  var raw = document.getElementById('pegar-texto').value;
+  var lineas = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  if(!lineas.length){ _showDlg('Lista vacía','Pega al menos un nombre.','alert','','',null); return; }
+  var mat = S.materias[S.activeMat];
+  var added = 0, dup = 0;
+  lineas.forEach(function(l){
+    var nombre = _parseNombreLinea(l);
+    if(!nombre) return;
+    if(mat.alumnos.find(function(a){ return a.nombre.toLowerCase()===nombre.toLowerCase(); })){ dup++; return; }
+    mat.alumnos.push({nombre:nombre, notas:{}, asist:Array(8).fill('A')});
+    added++;
+  });
+  closeModal();
+  renderSubTab();
+  if(_autoSaveEnabled) guardarLocal();
+  toast(added+' alumno(s) agregado(s)'+(dup?' · '+dup+' duplicado(s) omitido(s)':'')+' ✓');
+}
+
 // importAlumnos defined later in EXCEL EXPORTS section
 
 // ════════════════════════════════════════════════
@@ -991,6 +1044,12 @@ function showModal(type, idx, e){
     document.getElementById('mmod-temas').value = mod?mod.temas:'';
     document.getElementById('mmod-obj').value = mod?mod.objetivos:'';
     document.getElementById('modal-modulo').classList.remove('hidden');
+
+  } else if(type==='pegar'){
+    document.getElementById('pegar-texto').value = '';
+    document.getElementById('pegar-preview').textContent = '';
+    document.getElementById('modal-pegar').classList.remove('hidden');
+    setTimeout(function(){ document.getElementById('pegar-texto').focus(); }, 60);
 
   } else if(type==='report'){
     buildReport();
